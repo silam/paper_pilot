@@ -1,0 +1,9 @@
+# Experiment parameters tracked by DVC. Change -> `dvc repro` -> compare with `dvc metrics diff`.
+chunking:
+  size: 800
+  overlap: 120
+  strategy: recursive
+retrieval:
+  top_k: 5
+  hybrid_alpha: 0.5
+prompt_version: rag_v1

@@ -1,0 +1,7 @@
+# Feast production path for app/feature_store.py
+project: paperpilot
+provider: local
+registry: data/feast_registry.db
+online_store: {type: redis, connection_string: "redis:6379"}
+offline_store: {type: file}
+entity_key_serialization_version: 2

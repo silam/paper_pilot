@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: paperpilot}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: paperpilot-config, namespace: paperpilot}
+data:
+  LLM_PROVIDER: anthropic
+  EMBEDDING_BACKEND: hf
+  CHROMA_MODE: http
+  CHROMA_HOST: chroma
+  CHROMA_PORT: "8000"
+  REDIS_URL: redis://redis:6379/0
+  CELERY_BROKER_URL: redis://redis:6379/1
+  ENVIRONMENT: prod
+---
+# Example only. In real clusters use External Secrets / AWS Secrets Manager / Sealed Secrets.
+apiVersion: v1
+kind: Secret
+metadata: {name: paperpilot-secrets, namespace: paperpilot}
+type: Opaque
+stringData:
+  ANTHROPIC_API_KEY: "replace-me"
+  DATABASE_URL: "postgresql+psycopg://pp:pp@postgres:5432/paperpilot"   # managed RDS/Cloud SQL in prod

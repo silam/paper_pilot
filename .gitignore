@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+data/chroma*/
+data/*.db
+data/raw/
+eval/results/
+.pytest_cache/
+.ruff_cache/
+/dvc_store

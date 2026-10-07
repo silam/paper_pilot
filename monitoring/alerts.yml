@@ -1,0 +1,22 @@
+# SLO-style alerts. In prod route these through Alertmanager -> Slack / PagerDuty.
+groups:
+  - name: paperpilot
+    rules:
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, sum(rate(pp_step_latency_seconds_bucket{step="generate"}[5m])) by (le)) > 5
+        for: 10m
+        labels: {severity: warning}
+        annotations: {summary: "LLM generation p95 latency above 5s"}
+      - alert: HighHumanReviewRate
+        expr: rate(pp_hitl_total[30m]) / rate(pp_requests_total{route="/ask"}[30m]) > 0.2
+        for: 30m
+        labels: {severity: warning}
+        annotations: {summary: ">20% of answers low-confidence - possible retrieval/data regression"}
+      - alert: CostSpike
+        expr: increase(pp_llm_cost_usd_total[1h]) > 20
+        labels: {severity: critical}
+        annotations: {summary: "LLM spend > $20 in the last hour"}
+      - alert: InjectionAttackSurge
+        expr: increase(pp_guardrail_total{kind="prompt_injection"}[10m]) > 25
+        labels: {severity: warning}
+        annotations: {summary: "Spike in blocked prompt-injection attempts"}

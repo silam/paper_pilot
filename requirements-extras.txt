@@ -1,0 +1,12 @@
+# Optional integrations - install what you want to demo
+streamlit>=1.40          # UI
+kafka-python>=2.0        # streaming ingestion
+ragas>=0.2               # LLM-based RAG evaluation
+datasets>=3.0
+deepeval>=2.0            # alternative eval framework (pytest-style LLM tests)
+llama-index-core>=0.12   # LlamaIndex comparison pipeline
+llama-index-vector-stores-chroma
+llama-index-embeddings-huggingface
+pinecone>=5.0            # managed vector DB alternative
+feast>=0.40              # production feature store
+dvc>=3.50                # data & pipeline versioning

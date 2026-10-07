@@ -1,0 +1,34 @@
+# Workers scale independently of the API (queue depth, not HTTP traffic, drives them).
+# Upgrade path: KEDA ScaledObject on Redis list length for event-driven autoscaling.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: worker, namespace: paperpilot}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: worker}}
+  template:
+    metadata: {labels: {app: worker}}
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/YOUR_GH_USER/paperpilot:latest
+          command: ["celery", "-A", "app.workers.tasks", "worker", "--loglevel=info", "--concurrency=2"]
+          envFrom: [{configMapRef: {name: paperpilot-config}}, {secretRef: {name: paperpilot-secrets}}]
+          resources:
+            requests: {cpu: 500m, memory: 1Gi}
+            limits: {cpu: "2", memory: 3Gi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: beat, namespace: paperpilot}
+spec:
+  replicas: 1          # exactly one scheduler, or jobs run twice
+  selector: {matchLabels: {app: beat}}
+  template:
+    metadata: {labels: {app: beat}}
+    spec:
+      containers:
+        - name: beat
+          image: ghcr.io/YOUR_GH_USER/paperpilot:latest
+          command: ["celery", "-A", "app.workers.tasks", "beat", "--loglevel=info"]
+          envFrom: [{configMapRef: {name: paperpilot-config}}, {secretRef: {name: paperpilot-secrets}}]

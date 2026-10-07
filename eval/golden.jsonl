@@ -1,0 +1,18 @@
+{"question": "What is LoRA and how does it reduce trainable parameters?", "expected_doc": "arxiv:2106.09685", "must_include": ["low-rank", "frozen", "trainable"], "type": "answerable"}
+{"question": "Why does LoRA add no inference latency?", "expected_doc": "arxiv:2106.09685", "must_include": ["merged"], "type": "answerable"}
+{"question": "What is scaled dot-product attention?", "expected_doc": "arxiv:1706.03762", "must_include": ["square root"], "type": "answerable"}
+{"question": "What BLEU score did the Transformer reach on English-to-German?", "expected_doc": "arxiv:1706.03762", "must_include": ["28.4"], "type": "answerable"}
+{"question": "What pre-training objectives does BERT use?", "expected_doc": "arxiv:1810.04805", "must_include": ["masked"], "type": "answerable"}
+{"question": "Which retriever and generator does the RAG model use?", "expected_doc": "arxiv:2005.11401", "must_include": ["BART"], "type": "answerable"}
+{"question": "How does Dense Passage Retrieval compare to BM25?", "expected_doc": "arxiv:2004.04906", "must_include": ["BM25"], "type": "answerable"}
+{"question": "What is chain-of-thought prompting?", "expected_doc": "arxiv:2201.11903", "must_include": ["reasoning"], "type": "answerable"}
+{"question": "What are the three steps of RLHF in InstructGPT?", "expected_doc": "arxiv:2203.02155", "must_include": ["reward model"], "type": "answerable"}
+{"question": "How does ReAct reduce hallucination?", "expected_doc": "arxiv:2210.03629", "must_include": ["actions"], "type": "answerable"}
+{"question": "What are reflection tokens in Self-RAG?", "expected_doc": "arxiv:2310.11511", "must_include": ["reflection"], "type": "answerable"}
+{"question": "What does CRAG do when retrieval is judged incorrect?", "expected_doc": "arxiv:2401.15884", "must_include": ["web search"], "type": "answerable"}
+{"question": "What does the RAGAS faithfulness metric measure?", "expected_doc": "arxiv:2309.15217", "must_include": ["context"], "type": "answerable"}
+{"question": "What attention techniques does Mistral 7B use?", "expected_doc": "arxiv:2310.06825", "must_include": ["sliding window"], "type": "answerable"}
+{"question": "How does PagedAttention manage the KV cache in vLLM?", "expected_doc": "arxiv:2309.06180", "must_include": ["blocks"], "type": "answerable"}
+{"question": "What is the capital of France?", "expected_doc": null, "must_include": [], "type": "unanswerable"}
+{"question": "Who won the 2018 FIFA World Cup?", "expected_doc": null, "must_include": [], "type": "unanswerable"}
+{"question": "What is the best pizza topping?", "expected_doc": null, "must_include": [], "type": "unanswerable"}

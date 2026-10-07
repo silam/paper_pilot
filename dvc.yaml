@@ -1,0 +1,22 @@
+# Data Versioning + reproducible pipeline with DVC.
+#   dvc init && dvc repro          -> runs only stages whose inputs changed
+#   dvc metrics show / dvc metrics diff main   -> compare eval metrics across commits
+#   dvc push                       -> data/models to S3/GCS remote (git only stores hashes)
+stages:
+  ingest:
+    cmd: >-
+      CHUNK_SIZE=${chunking.size} CHUNK_OVERLAP=${chunking.overlap}
+      CHUNK_STRATEGY=${chunking.strategy}
+      python -m app.ingestion.pipeline --source sample
+    deps: [data/sample/papers.json, app/ingestion]
+    params: [chunking]
+    outs: [data/chroma, data/paperpilot.db]
+  evaluate:
+    cmd: >-
+      TOP_K=${retrieval.top_k} HYBRID_ALPHA=${retrieval.hybrid_alpha}
+      python -m eval.run_eval --version ${prompt_version}
+    deps: [data/chroma, eval/golden.jsonl, eval/run_eval.py, app/rag_graph.py, app/llm/prompts.py]
+    params: [retrieval, prompt_version]
+    metrics:
+      - eval/results/${prompt_version}.json:
+          cache: false
