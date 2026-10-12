@@ -34,7 +34,7 @@ class Chunk:
     position: int
     metadata: dict = field(default_factory=dict)
 
-
+#----------------------------------------------------------------------------------
 def _recursive_split(text: str, size: int, separators: tuple[str, ...] = ("\n\n", "\n", ". ", " ")) -> list[str]:
     if len(text) <= size:
         return [text]
@@ -60,7 +60,7 @@ def _recursive_split(text: str, size: int, separators: tuple[str, ...] = ("\n\n"
         pieces.append(buf)
     return [p.strip() for p in pieces if p.strip()]
 
-
+#----------------------------------------------------------------------------------
 def _with_overlap(pieces: list[str], overlap: int) -> list[str]:
     """Prefix each chunk with the tail of the previous one."""
     if overlap <= 0:
@@ -72,7 +72,7 @@ def _with_overlap(pieces: list[str], overlap: int) -> list[str]:
         out.append(f"{tail} {cur}")
     return out
 
-
+#----------------------------------------------------------------------------------
 def _sentence_split(text: str, size: int) -> list[str]:
     sentences = _SENTENCE_SPLIT.split(text)
     chunks, buf = [], ""
@@ -86,13 +86,19 @@ def _sentence_split(text: str, size: int) -> list[str]:
         chunks.append(buf)
     return chunks
 
-
-def chunk_document(doc: RawDocument, size: int = 800, overlap: int = 120,
-                   strategy: str = "recursive") -> list[Chunk]:
+#------------------------------------------------------------------------
+def chunk_document(doc: RawDocument, 
+                   size: int = 800, # chunk size
+                   overlap: int = 120, #chunk overlap
+                   strategy: str = "recursive" #Chunk strategy
+                   ) -> list[Chunk]:
+    
     if strategy == "sentence":
         pieces = _sentence_split(doc.text, size)
     else:
         pieces = _recursive_split(doc.text, size)
+
+    # Prefix each chunk with the tail of the previous one
     pieces = _with_overlap(pieces, overlap)
 
     chunks = []
@@ -102,8 +108,15 @@ def chunk_document(doc: RawDocument, size: int = 800, overlap: int = 120,
         text = f"Title: {doc.title}\n{piece}"
         cid = hashlib.md5(f"{doc.doc_id}:{i}:{piece[:50]}".encode()).hexdigest()[:16]
         chunks.append(Chunk(
-            chunk_id=cid, doc_id=doc.doc_id, text=text, position=i,
-            metadata={"doc_id": doc.doc_id, "title": doc.title, "url": doc.url,
-                      "source": doc.source, "published": doc.published, "position": i},
+            chunk_id=cid, 
+            doc_id=doc.doc_id, 
+            text=text, 
+            position=i,
+            metadata={"doc_id": doc.doc_id, 
+                      "title": doc.title, 
+                      "url": doc.url,
+                      "source": doc.source, 
+                      "published": doc.published, 
+                      "position": i},
         ))
     return chunks

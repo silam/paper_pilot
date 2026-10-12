@@ -6,7 +6,7 @@ Vector Database layer.
 managed-cloud alternative behind the same interface - the rest of the code
 never imports chromadb or pinecone directly. (Weaviate would be a third class.)
 
-Chroma vs Pinecone vs Weaviate (know this for the interview):
+Chroma vs Pinecone vs Weaviate (know this for the DISCUSSION):
   * Chroma   - open-source, embedded or server, great for dev & small/medium prod.
   * Pinecone - fully managed, serverless, scales to billions; you pay per usage.
   * Weaviate - open-source, built-in hybrid (BM25+vector) search, GraphQL API.

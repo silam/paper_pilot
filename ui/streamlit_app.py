@@ -1,7 +1,7 @@
 """
 Streamlit UI - UX for AI products.
 
-UX principles applied (good interview material):
+UX principles applied (good DISCUSSION material):
   * Show SOURCES with every answer  -> users can verify (trust calibration)
   * Show a CONFIDENCE badge          -> groundedness score, honest about uncertainty
   * "Needs review" state             -> transparent Human-in-the-Loop, not a silent failure

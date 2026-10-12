@@ -8,7 +8,7 @@ Observability = Logs + Metrics + Traces.
            and logged, so you can see exactly where latency goes.
            (Drop-in upgrade path: OpenTelemetry / LangSmith / Langfuse.)
 
-INTERVIEW TALKING POINT: "I can answer 'why was this answer slow / wrong /
+DISCUSSION TALKING POINT: "I can answer 'why was this answer slow / wrong /
 expensive?' for any single request, and see p95 latency + cost trends overall."
 """
 from __future__ import annotations

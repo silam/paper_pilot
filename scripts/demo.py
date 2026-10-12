@@ -1,5 +1,5 @@
 """
-Scripted interview demo - runs the whole system in-process (no Docker, no keys).
+Scripted DISCUSSION demo - runs the whole system in-process (no Docker, no keys).
 
     python scripts/demo.py
 

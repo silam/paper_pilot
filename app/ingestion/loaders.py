@@ -30,6 +30,8 @@ ARXIV_API = "https://export.arxiv.org/api/query"
 ATOM = "{http://www.w3.org/2005/Atom}"
 
 
+# ---------------------------------------------------------------- 
+
 @dataclass
 class RawDocument:
     doc_id: str
@@ -61,9 +63,10 @@ def fetch_arxiv(query: str, max_results: int = 20, retries: int = 3) -> list[Raw
             wait = 2 ** attempt
             logger.warning("arxiv fetch failed (%s); retry in %ss", exc, wait)
             time.sleep(wait)
+             
     raise RuntimeError("arXiv API unavailable after retries")
 
-
+# ---------------------------------------------------------------- 
 def parse_arxiv_atom(xml_text: str) -> list[RawDocument]:
     root = ET.fromstring(xml_text)
     docs = []
@@ -83,17 +86,23 @@ def parse_arxiv_atom(xml_text: str) -> list[RawDocument]:
 
 # ---------------------------------------------------------------- local files
 def load_file(path: Path) -> list[RawDocument]:
+    
     suffix = path.suffix.lower()
+
     if suffix == ".json":
         # A JSON file holding a list of papers (our bundled sample dataset).
         records = json.loads(path.read_text())
+
         return [RawDocument(
             doc_id=r["id"], title=r["title"], text=r["text"], source=r.get("source", "file"),
             url=r.get("url", ""), authors=r.get("authors", []), published=r.get("published", ""),
         ) for r in records]
+    
     if suffix in {".md", ".txt"}:
         text = path.read_text(errors="ignore")
+
     elif suffix == ".pdf":
+
         from pypdf import PdfReader  # lazy import: optional dependency
         reader = PdfReader(str(path))
         # Keep page markers so citations can point to a page.
@@ -101,8 +110,10 @@ def load_file(path: Path) -> list[RawDocument]:
     else:
         logger.info("skipping unsupported file %s", path)
         return []
+    
     return [RawDocument(doc_id=f"file:{path.name}", title=path.stem, text=text, source="file")]
 
+# ---------------------------------------------------------------- local load_directory
 
 def load_directory(directory: str | Path) -> list[RawDocument]:
     docs: list[RawDocument] = []

@@ -35,13 +35,21 @@ SAMPLE = Path(__file__).resolve().parents[2] / "data" / "sample" / "papers.json"
 
 
 def ingest_documents(docs: list[RawDocument]) -> dict:
-    s = get_settings()
-    t0 = time.perf_counter()
-    docs, quality = clean_documents(docs, redact=s.redact_pii)
+    s = get_settings() # return base settings for safety, guard rails, cost, queueing like kafka
+    
+    t0 = time.perf_counter() # performance counter for benchmark
 
+    #Clean + dedupe + redact. Returns docs and a small data-quality report
+    docs, quality = clean_documents(docs, redact=s.redact_pii) 
+
+    # get session of sqlite
     session = get_session()
+
+    # get chromadb or pinecone store
     store = get_store()
+
     report = {"quality": quality, "new": 0, "updated": 0, "skipped": 0, "chunks": 0}
+
     for doc in docs:
         existing = session.get(Document, doc.doc_id)
         if existing and existing.content_hash == doc.content_hash:
@@ -52,19 +60,25 @@ def ingest_documents(docs: list[RawDocument]) -> dict:
             report["updated"] += 1
         else:
             report["new"] += 1
+
         chunks = chunk_document(doc, s.chunk_size, s.chunk_overlap, s.chunk_strategy)
+
         store.upsert(chunks)
+
         report["chunks"] += len(chunks)
+
         session.merge(Document(
             doc_id=doc.doc_id, title=doc.title, source=doc.source, url=doc.url,
             published=doc.published, content_hash=doc.content_hash, n_chunks=len(chunks),
         ))
+
     session.commit()
     session.close()
     refresh_keyword_index()
     report["seconds"] = round(time.perf_counter() - t0, 2)
     report["total_vectors"] = store.count()
     logger.info("ingestion done %s", report)
+    
     return report
 
 

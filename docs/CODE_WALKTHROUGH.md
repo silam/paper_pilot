@@ -1,7 +1,7 @@
 # Code walkthrough
 
 Read the files in this order. Each one builds on the previous, and each file's docstring
-repeats the key "why" so you can open it during the interview and talk from the code.
+repeats the key "why" so you can open it during the DISCUSSION and talk from the code.
 
 ---
 
@@ -109,7 +109,7 @@ Celery tasks and the Kafka consumer, so behaviour is identical everywhere.
 | Output | `check_output()` | PII leak check |
 | Optional | `judge_groundedness()` | LLM-as-judge returning JSON |
 
-Be honest in the interview: regex + lexical overlap are a **cheap first line**. Production adds a
+Be honest in the discussion: regex + lexical overlap are a **cheap first line**. Production adds a
 classifier (Llama Guard / Prompt Guard) and an NLI model or LLM judge — the interfaces are ready.
 
 ### `app/rag_graph.py` — the LangGraph state machine

@@ -1,4 +1,4 @@
-# Interview guide
+# DISCUSSION guide
 
 ## 1. Problem framing (open with this — 60 seconds)
 
@@ -28,7 +28,7 @@
 | 7 | `python -m eval.run_eval --gate` | "This runs in CI. A prompt change that drops groundedness can't merge." |
 | 8 | Grafana screenshot / `k8s/` | "Same code runs in Compose and Kubernetes; HPA on the API, workers scale separately." |
 
-Tip: before the interview, run once with `LLM_PROVIDER=anthropic EMBEDDING_BACKEND=hf` and
+Tip: before the DISCUSSION, run once with `LLM_PROVIDER=anthropic EMBEDDING_BACKEND=hf` and
 take screenshots of the UI and Grafana for the README — real-model answers are more impressive
 than the offline extractive mode.
 
@@ -82,7 +82,7 @@ the provider side, parallelising retrieval calls, self-hosting with vLLM for thr
 hit@k and MRR against the expected document per question (already implemented). If hit@k is
 low, fix chunking/embeddings/hybrid weights before touching prompts.
 
-**What are the weaknesses of this project?** (interviewers love honesty)
+**What are the weaknesses of this project?**
 - Golden set is small (18 questions) — would grow it from production feedback and synthetic
   question generation, with human spot checks.
 - Guardrails and groundedness are heuristic baselines.
@@ -91,7 +91,7 @@ low, fix chunking/embeddings/hybrid weights before touching prompts.
 - BM25 index is in-process per replica.
 - No auth/multi-tenancy yet (would add OAuth/JWT and per-tenant metadata filters).
 
-## 5. Ideas to extend (pick one before the interview to show initiative)
+## 5. Ideas to extend (pick one before the DISCUSSION to show initiative)
 1. Agentic mode: add a LangGraph tool node (arXiv search, citation graph lookup) with
    a ReAct loop and step limits.
 2. Streaming responses with Server-Sent Events.

@@ -1,5 +1,5 @@
 """
-LlamaIndex alternative pipeline (for comparison / interview discussion).
+LlamaIndex alternative pipeline (for comparison / discussion).
 
 LangChain/LangGraph = general orchestration (agents, graphs, tools).
 LlamaIndex          = data-framework focus: loaders (LlamaHub), node parsers,

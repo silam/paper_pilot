@@ -33,7 +33,7 @@ PII_PATTERNS = {
     "CREDIT_CARD": re.compile(r"\b(?:\d[ -]?){13,16}\b"),
 }
 
-
+#--------------------------------------------------------------------------------------------
 def redact_pii(text: str) -> tuple[str, dict[str, int]]:
     """Replace PII with typed placeholders. Returns (clean_text, counts)."""
     counts: dict[str, int] = {}
@@ -43,7 +43,7 @@ def redact_pii(text: str) -> tuple[str, dict[str, int]]:
             counts[label] = n
     return text, counts
 
-
+#--------------------------------------------------------------------------------------------
 def clean_text(text: str) -> str:
     text = unicodedata.normalize("NFKC", text)
     text = "".join(ch for ch in text if ch == "\n" or unicodedata.category(ch)[0] != "C")
@@ -54,7 +54,7 @@ def clean_text(text: str) -> str:
     text = _MULTI_NL.sub("\n\n", text)
     return text.strip()
 
-
+#--------------------------------------------------------------------------------------------
 def clean_documents(docs: list[RawDocument], redact: bool = True,
                     min_chars: int = 50) -> tuple[list[RawDocument], dict]:
     """Clean + dedupe + redact. Returns docs and a small data-quality report."""
