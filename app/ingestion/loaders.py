@@ -9,7 +9,7 @@ Every loader returns the same `RawDocument` shape, so downstream steps
 (cleaning, chunking, embedding) don't care where data came from.
 This is the "Adapter" pattern - add a new source by writing one function.
 
-INTERVIEW TALKING POINT: "Loaders are pure functions that normalize heterogeneous
+DISCUSSION TALKING POINT: "Loaders are pure functions that normalize heterogeneous
 sources into one schema. Retries + rate-limit politeness for external APIs."
 """
 from __future__ import annotations

@@ -13,7 +13,7 @@ Two backends behind ONE interface (Strategy pattern):
 
 Vectors are L2-normalised, so dot product == cosine similarity.
 
-INTERVIEW TALKING POINTS:
+DISCUSSION TALKING POINTS:
   - "Embedding model choice is an eval-driven decision (MTEB leaderboard is a
      starting point, your own golden set is the decider)."
   - "Batching + caching embeddings by content hash saves cost on re-ingestion."

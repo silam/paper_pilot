@@ -136,6 +136,7 @@ def ask(req: AskRequest) -> AskResponse:
     if cached:
         state = cached
     else:
+        print(f"{req.question}")
         result = run_rag(req.question, version, req.filters)
         relevant = result.get("relevant", [])
         state = {

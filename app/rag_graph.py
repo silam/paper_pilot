@@ -90,6 +90,8 @@ def input_guard(state: RAGState) -> RAGState:
         if not g.allowed:
             return {"status": "blocked", "guard_reasons": g.reasons,
                     "answer": "Request blocked by safety guardrails."}
+
+        print(f"********* Reason = {g.reasons}")
         return {"question": g.sanitized, "query": g.sanitized, "guard_reasons": g.reasons}
 
 
@@ -100,10 +102,16 @@ def rewrite(state: RAGState) -> RAGState:
             # Corrective retry: fall back to the raw question & lean on keywords.
             return {"query": state["question"], "alpha": 0.3, "attempts": attempts + 1}
         llm = get_llm()
+        
         if llm.provider == "offline":
+            print(f"********* llm.provider = {llm.provider}")
             return {"query": state["question"], "attempts": 1}
+
+        
         system, user = QUERY_REWRITE.render(question=state["question"])
         r = llm.complete(system, user, max_tokens=60)
+
+        print(f"********* text query = {r.text.strip()}")
         return {"query": r.text.strip() or state["question"], "attempts": 1,
                 **_usage(state, r)}
 

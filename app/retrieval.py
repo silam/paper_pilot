@@ -13,7 +13,7 @@ scores (they're on totally different scales).
 Optional rerank: a cross-encoder (query, chunk) -> relevance score. Slower but
 much more precise; applied only to the top ~20 fused candidates.
 
-INTERVIEW TALKING POINT: "Retrieval quality is the ceiling on answer quality.
+DISCUSSION TALKING POINT: "Retrieval quality is the ceiling on answer quality.
 I measure it separately (hit-rate / MRR on a golden set) before touching prompts."
 """
 from __future__ import annotations

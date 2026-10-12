@@ -45,6 +45,7 @@ class GuardResult:
 
 
 def check_input(query: str, max_len: int = 2000) -> GuardResult:
+    print(f"***********{query}")
     reasons = []
     if len(query) > max_len:
         reasons.append("query_too_long")
@@ -53,6 +54,8 @@ def check_input(query: str, max_len: int = 2000) -> GuardResult:
             reasons.append("prompt_injection")
             break
     sanitized, pii = redact_pii(query)
+
+    print(f"***********{sanitized}")
     if pii:
         reasons.append("pii_in_query_redacted")      # allowed, but redacted
     blocking = {"prompt_injection", "query_too_long"}

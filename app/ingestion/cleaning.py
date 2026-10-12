@@ -8,7 +8,7 @@ Garbage in = garbage retrieved. Cleaning has an outsized effect on RAG quality:
   - drop near-empty docs and duplicates
   - redact PII BEFORE it is embedded (GDPR/HIPAA: you can't easily "un-embed")
 
-INTERVIEW TALKING POINT: "PII is redacted at ingestion time, not just at output
+DISCUSSION TALKING POINT: "PII is redacted at ingestion time, not just at output
 time, because once personal data lands in a vector index, deleting it for a
 GDPR 'right to be forgotten' request is painful."
 """

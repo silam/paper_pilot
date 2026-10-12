@@ -5,7 +5,7 @@ WHY: Every setting comes from environment variables (or a .env file), so the
 same Docker image runs locally, in CI, and in Kubernetes with different config.
 pydantic-settings validates types at startup -> misconfiguration fails fast.
 
-INTERVIEW TALKING POINT: "Config is code-free and validated. Secrets come from
+DISCUSSION TALKING POINT: "Config is code-free and validated. Secrets come from
 env / K8s Secrets, never from the repo."
 """
 from functools import lru_cache
