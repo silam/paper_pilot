@@ -26,6 +26,7 @@ from app.config import get_settings
 from app.embeddings import get_embedder
 from app.ingestion.chunking import Chunk
 
+from rich import print
 
 @dataclass
 class Hit:
@@ -72,12 +73,18 @@ class ChromaStore:
         return len(chunks)
 
     def query(self, text: str, k: int, where: dict | None = None) -> list[Hit]:
+
+        print(f"Chrome Query = {text}")
         if self.col.count() == 0:
             return []
         res = self.col.query(query_embeddings=self.embedder.embed([text]),
                              n_results=min(k, self.col.count()), where=where)
+        
+        print(f"############# Res={res}")
         return [
+            
             Hit(chunk_id=i, text=d, metadata=m or {}, score=1.0 - dist)   # cosine distance -> similarity
+
             for i, d, m, dist in zip(res["ids"][0], res["documents"][0],
                                      res["metadatas"][0], res["distances"][0])
         ]
@@ -114,6 +121,8 @@ class PineconeStore:  # pragma: no cover - needs a cloud account
         return len(chunks)
 
     def query(self, text: str, k: int, where: dict | None = None) -> list[Hit]:
+
+        print(f"PineCone{text}")
         res = self.index.query(vector=self.embedder.embed([text])[0], top_k=k,
                                include_metadata=True, filter=where)
         return [Hit(m.id, m.metadata.get("text", ""), dict(m.metadata), m.score) for m in res.matches]

@@ -63,6 +63,7 @@ class LLMClient:
         return {"anthropic": self.s.anthropic_model, "openai": self.s.openai_model,
                 "vllm": self.s.vllm_model}.get(self.provider, "offline-extractive")
 
+
     def complete(self, system: str, user: str, max_tokens: int | None = None,
                  retries: int = 2) -> LLMResult:
         """Call the model with retry + timing + token accounting."""
@@ -71,6 +72,9 @@ class LLMClient:
         for attempt in range(retries + 1):
             try:
                 result = self._call(system, user, max_tokens or self.s.llm_max_tokens)
+
+                print(f"############## LLM call succeeded on attempt {result}")
+
                 break
             except Exception as exc:  # network / rate-limit errors
                 last_err = exc
@@ -78,6 +82,7 @@ class LLMClient:
                 time.sleep(2 ** attempt)
         else:
             raise RuntimeError(f"LLM unavailable: {last_err}")
+        
         result.latency_ms = round((time.perf_counter() - t0) * 1000, 1)
         TOKENS.labels("input").inc(result.input_tokens)
         TOKENS.labels("output").inc(result.output_tokens)

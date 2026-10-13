@@ -31,7 +31,7 @@ _STOP = set("the a an of to in and or for on with is are was were be by as at fr
 
 
 def tokenize(text: str) -> list[str]:
-    return [t for t in _TOK.findall(text.lower()) if t not in _STOP]
+    return [t for t in _TOK.findall(text.lower()) if t not in _STOP] # if t is not in the set of STOP words
 
 
 class BM25Index:
@@ -55,9 +55,13 @@ class BM25Index:
             self._version = version
 
     def search(self, query: str, k: int) -> list[Hit]:
+
+        print(f"Search = {query}")
+
         self.refresh()
         if not self._hits or self._bm25 is None:
             return []
+        
         scores = self._bm25.get_scores(tokenize(query))
         ranked = sorted(zip(self._hits, scores), key=lambda x: x[1], reverse=True)[:k]
         return [Hit(h.chunk_id, h.text, h.metadata, float(s)) for h, s in ranked if s > 0]
@@ -65,7 +69,7 @@ class BM25Index:
 
 _bm25 = BM25Index()
 
-
+#---------------------------------------------------------------------------------------
 def rrf_fuse(ranked_lists: list[list[Hit]], weights: list[float], k: int = 60) -> list[Hit]:
     fused: dict[str, float] = {}
     by_id: dict[str, Hit] = {}
@@ -74,10 +78,12 @@ def rrf_fuse(ranked_lists: list[list[Hit]], weights: list[float], k: int = 60) -
             fused[h.chunk_id] = fused.get(h.chunk_id, 0.0) + w / (k + rank + 1)
             # first list = dense, so its cosine score wins (used by the grader)
             by_id.setdefault(h.chunk_id, h)
+    
     order = sorted(fused, key=fused.get, reverse=True)
+
     return [by_id[i] for i in order]
 
-
+#---------------------------------------------------------------------------------------
 class CrossEncoderReranker:  # optional, enabled when sentence-transformers is installed
     def __init__(self, model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
         from sentence_transformers import CrossEncoder
@@ -88,16 +94,22 @@ class CrossEncoderReranker:  # optional, enabled when sentence-transformers is i
         ranked = sorted(zip(hits, scores), key=lambda x: x[1], reverse=True)[:k]
         return [h for h, _ in ranked]
 
-
+#----------------------------------------------------------------------------------
 def hybrid_search(query: str, k: int | None = None, where: dict | None = None,
                   alpha: float | None = None) -> list[Hit]:
     s = get_settings()
     k = k or s.top_k
     alpha = s.hybrid_alpha if alpha is None else alpha
     candidates = k * 4                        # over-fetch, then fuse/trim
+
+    print(f"hybrid_search query = {query}, where = {where}")
+
     dense = get_store().query(query, candidates, where=where)
+    print(f"############## dense = {dense}")
     sparse = _bm25.search(query, candidates) if alpha < 1.0 else []
+    print(f"################ sparse = {sparse}")
     fused = rrf_fuse([dense, sparse], [alpha, 1 - alpha])
+    print(f"################ fused = {fused}")   
 
     # Make sure every fused hit has a cosine score (BM25-only hits come in
     # with a BM25 score) so downstream relevance grading is consistent.

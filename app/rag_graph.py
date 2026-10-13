@@ -137,6 +137,15 @@ def grade_docs(state: RAGState) -> RAGState:
     relevance = max(semantic similarity, keyword coverage of the question)
     (Production upgrade: a cross-encoder or a small LLM grader returning yes/no.)
     """
+    # with ... as sp:: This is Python's context manager syntax. 
+    # It guarantees that a specific setup happens before the code runs 
+    # and a cleanup happens after it finishes—even if your code crashes or raises an error.
+    # span("grade_docs"): This initializes a "span"—a single unit of work 
+    # or an execution segment (in this case, the process of grading documents).
+    # as sp: This binds the span object to the variable sp. Inside the block, 
+    # you can use sp to log metrics, attach metadata 
+    # (like sp.set_attribute("num_docs", 5)), or track exceptions.
+
     with span("grade_docs") as sp:
         thr = get_settings().min_relevance
         qwords = _content_words(state["question"])
@@ -149,7 +158,7 @@ def grade_docs(state: RAGState) -> RAGState:
         sp["relevant"] = len(relevant)
         return {"relevant": relevant}
 
-
+#-------------------------------------------------------------------
 def generate(state: RAGState) -> RAGState:
     with span("generate") as sp:
         relevant = state.get("relevant", [])
@@ -161,8 +170,10 @@ def generate(state: RAGState) -> RAGState:
             if flagged:
                 GUARDRAIL.labels("indirect_injection_in_context").inc()
             safe_hits.append(Hit(h.chunk_id, text, h.metadata, h.score))
+
         prompt = get_prompt(state.get("prompt_version", "rag_v1"))
         system, user = prompt.render(context=format_context(safe_hits), question=state["question"])
+        
         r = get_llm().complete(system, user)
         sp.update(model=r.model, in_tok=r.input_tokens, out_tok=r.output_tokens)
         return {"answer": r.text.strip(), "model": r.model, "relevant": safe_hits, **_usage(state, r)}
@@ -170,28 +181,33 @@ def generate(state: RAGState) -> RAGState:
 
 def validate(state: RAGState) -> RAGState:
     with span("validate") as sp:
-        answer, leaks = check_output(state["answer"])
+        answer, leaks = check_output(state["answer"]) #edacts PII and returns any detected leaks. 
         sources = [h.text for h in state.get("relevant", [])]
-        g = groundedness(answer, sources)
-        c = check_citations(answer, len(sources))
+        
+        g = groundedness(answer, sources) # compares the answer’s sentences with the relevant source texts and returns a score plus sentence-level details.
+
+        c = check_citations(answer, len(sources)) # finds citation numbers such as [1] and flags numbers outside the range 1 to len(sources).
+
         sp.update(groundedness=g["score"], invalid_citations=c["invalid"])
+
         for leak in leaks:
             GUARDRAIL.labels(leak).inc()
+
         return {"answer": answer, "groundedness": g, "citations": c,
                 "guard_reasons": state.get("guard_reasons", []) + leaks}
 
-
+#----------------------------------------------------------------------
 def human_review(state: RAGState) -> RAGState:
     HITL.inc()
     with span("human_review"):
         return {"status": "needs_review"}
 
-
+#----------------------------------------------------------------------
 def finalize(state: RAGState) -> RAGState:
     return {"status": "answered"}
 
 
-# ------------------------------------------------------------------ routing
+#---------------------------------------------------------------------- routing
 def after_guard(state: RAGState) -> str:
     return "blocked" if state.get("status") == "blocked" else "ok"
 
