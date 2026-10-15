@@ -183,11 +183,18 @@ def validate(state: RAGState) -> RAGState:
     with span("validate") as sp:
         answer, leaks = check_output(state["answer"]) #edacts PII and returns any detected leaks. 
         sources = [h.text for h in state.get("relevant", [])]
+
+        print(f"********* answer = {answer}")
+        print(f"********* sources = {sources}")
+        print(f"********* leaks = {leaks}")
         
         g = groundedness(answer, sources) # compares the answer’s sentences with the relevant source texts and returns a score plus sentence-level details.
 
         c = check_citations(answer, len(sources)) # finds citation numbers such as [1] and flags numbers outside the range 1 to len(sources).
 
+        print(f"********* groundedness = {g}")
+        print(f"********* citations = {c}")
+        
         sp.update(groundedness=g["score"], invalid_citations=c["invalid"])
 
         for leak in leaks:
