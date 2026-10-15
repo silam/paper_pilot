@@ -76,16 +76,45 @@ def sanitize_context(text: str) -> tuple[str, bool]:
 
 
 # ------------------------------------------------------------------ output guard
+
 _W = re.compile(r"[a-z0-9]+")
 _STOP = set("the a an of to in and or for on with is are was were be by as at from that this it its "
             "which can has have also into than these those their they what how why does who when where "
             "explain describe tell about paper papers".split())
 
+"""
+this function extracts the “important” words from a piece of text, 
+ignoring common filler words and very short words. 
+It returns a unique set of content words that can be used 
+for filtering, scoring, similarity checks, or guardrail logic.
 
+"""
 def _content_words(t: str) -> set[str]:
     return {w for w in _W.findall(t.lower()) if w not in _STOP and len(w) > 2}
 
+"""
+estimates how well an answer is supported by the provided sources 
+using word overlap; it does not call a model. 
+If the answer contains “don't know” (case-insensitively),
+ it treats that as a grounded refusal and immediately returns a score of 1.0 
+ with no sentence details.
 
+Otherwise, it converts each source into a set of content words, 
+then splits the answer into sentences at whitespace following ., !, or ?. 
+For each sentence longer than three characters, 
+it removes citation markers such as [1], extracts its content words, 
+and measures the fraction that appear in each source. The sentence’s support is the highest fraction from any one source, rounded to two decimal places. Sentences with no content words are skipped; sentences with support below 0.5 are marked unsupported.
+
+The final score is the fraction of evaluated sentences 
+that were not marked unsupported, 
+rounded to three decimal places. 
+If there are no evaluated sentences, 
+the score is 0.0. 
+Because this is based only on word overlap, 
+it can miss paraphrases or 
+flag claims that share words but contradict a source; 
+it is a quick heuristic, not a semantic verification.
+"""
 def groundedness(answer: str, sources: list[str]) -> dict:
     """
     Fast, model-free hallucination check.
@@ -98,21 +127,30 @@ def groundedness(answer: str, sources: list[str]) -> dict:
     """
     if "don't know" in answer.lower():
         return {"score": 1.0, "sentences": [], "unsupported": []}   # refusal is grounded
+
+    # It returns a unique set of content words that can be used 
+    # for filtering, scoring, similarity checks, or guardrail logic
     src_words = [_content_words(s) for s in sources]
     details, unsupported = [], []
+
     sentences = [s for s in re.split(r"(?<=[.!?])\s+", answer.strip()) if len(s) > 3]
     for sent in sentences:
         cw = _content_words(re.sub(r"\[\d+\]", "", sent))
         if not cw:
             continue
+        
         support = max((len(cw & sw) / len(cw) for sw in src_words), default=0.0)
+        
         details.append({"sentence": sent, "support": round(support, 2)})
+        
         if support < 0.5:
             unsupported.append(sent)
+
     score = 1.0 - len(unsupported) / len(details) if details else 0.0
+    
     return {"score": round(score, 3), "sentences": details, "unsupported": unsupported}
 
-
+#------------------------------------------------------------------ citation guard
 def check_citations(answer: str, n_sources: int) -> dict:
     cited = {int(c) for c in re.findall(r"\[(\d+)\]", answer)}
     invalid = sorted(c for c in cited if c < 1 or c > n_sources)
