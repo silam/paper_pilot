@@ -70,17 +70,74 @@ class BM25Index:
 _bm25 = BM25Index()
 
 #---------------------------------------------------------------------------------------
+# score(chunk) = sum(weight_i / (k + rank_i(chunk) + 1))
+"""
+This function is doing Reciprocal Rank Fusion (RRF), 
+which combines multiple ranked result lists into one ordered list.
+
+What it does:
+
+ranked_lists: a list of result lists, e.g. dense vector hits and BM25 hits
+weights: how much to trust each list
+k: the RRF constant, usually around 60
+Core idea:
+
+For each hit in each list, compute: w / (k + rank + 1)
+Add that to the hit’s fused score
+After all lists are processed, sort all unique chunk IDs by 
+the fused score descending
+Return the hits in that order
+Why this matters:
+
+RRF is rank-based, not score-based.
+It avoids needing to normalize cosine similarity and BM25 scores, which are on different scales.
+Important details in your code:
+
+fused[h.chunk_id] = fused.get(h.chunk_id, 0.0) + ...
+Accumulates the total fused score for each chunk
+by_id.setdefault(h.chunk_id, h)
+Keeps the first copy of a hit for that chunk
+This is intentional: the comment says the dense list should win, 
+so the first list’s Hit object is preserved
+order = sorted(fused, key=fused.get, reverse=True)
+Sorts chunk IDs by fused score, highest first
+return [by_id[i] for i in order]
+Returns the actual Hit objects in fused order
+A subtle gotcha:
+
+zip(ranked_lists, weights) silently truncates if lengths differ.
+If the lists are not same-length, you may miss data without an error.
+A safer version would validate lengths before looping.
+Also:
+
+The print(...) calls are debug noise and should be removed in production.
+They are not part of the actual ranking logic.
+The function is conceptually:
+
+
+and then sort by that score.
+
+"""
+
 def rrf_fuse(ranked_lists: list[list[Hit]], weights: list[float], k: int = 60) -> list[Hit]:
     fused: dict[str, float] = {}
     by_id: dict[str, Hit] = {}
     for hits, w in zip(ranked_lists, weights):
         for rank, h in enumerate(hits):
+            print(f"########## rank = {rank}") # 0,1,2,4
+            print(f"########## h = {h}") # Hit(chunk_id='3783d28ea75d3a3e', text='
+
+            # Accumulates the total fused score for each chunk
             fused[h.chunk_id] = fused.get(h.chunk_id, 0.0) + w / (k + rank + 1)
+
+            print(f"############# fused[h.chunk_id] = {fused[h.chunk_id]}")
             # first list = dense, so its cosine score wins (used by the grader)
             by_id.setdefault(h.chunk_id, h)
-    
+
+    # Sorts chunk IDs by fused score, highest first
     order = sorted(fused, key=fused.get, reverse=True)
 
+    #Returns the actual Hit objects in fused order
     return [by_id[i] for i in order]
 
 #---------------------------------------------------------------------------------------
