@@ -43,6 +43,8 @@ from app.observability import FEEDBACK, REQUESTS, get_spans, log_event, setup_lo
 from app.rag_graph import run_rag
 from app.retrieval import refresh_keyword_index
 from app.vectorstore import get_store
+from dotenv import load_dotenv
+load_dotenv()
 
 settings = get_settings()
 setup_logging(settings.log_level)

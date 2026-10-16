@@ -95,15 +95,22 @@ class LLMClient:
 
     def _call(self, system: str, user: str, max_tokens: int) -> LLMResult:
         print("*********** LLMClient._call")
+        
+        
         if self.provider == "anthropic":
+
+            print("*********** self.provider == 'anthropic'")
             r = self._anthropic.messages.create(
                 model=self.s.anthropic_model, system=system, max_tokens=max_tokens,
-                temperature=self.s.llm_temperature,
+                ### temperature=self.s.llm_temperature, NO TEMP in create function
                 messages=[{"role": "user", "content": user}],
             )
             text = "".join(b.text for b in r.content if getattr(b, "type", "") == "text")
             return LLMResult(text, self.model_name, r.usage.input_tokens, r.usage.output_tokens)
+
+        
         if self.provider in ("openai", "vllm"):
+            print(f"*********** self.provider == '{self.provider}'")
             r = self._openai.chat.completions.create(
                 model=self.model_name, max_tokens=max_tokens, temperature=self.s.llm_temperature,
                 messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -111,6 +118,8 @@ class LLMClient:
             u = r.usage
             return LLMResult(r.choices[0].message.content or "", self.model_name,
                              u.prompt_tokens if u else 0, u.completion_tokens if u else 0)
+
+        print(f"*********** self.provider == '{self.provider}'")
         return offline_complete(system, user)
 
 

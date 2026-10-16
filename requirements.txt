@@ -17,3 +17,4 @@ pypdf>=5.0
 # LLM SDKs (only the one you configure is used)
 anthropic>=0.60
 openai>=1.90
+sentence_transformers>=2.2.2
