@@ -30,9 +30,11 @@ class PaperPilotRetriever(BaseRetriever):
 
     def _get_relevant_documents(self, query: str, *,
                                 run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
+        print("*********** PaperPilotRetriever._get_relevant_documents")
         return [Document(page_content=h.text, metadata={**h.metadata, "score": h.score})
                 for h in hybrid_search(query, k=self.k, where=self.filters)]
 
 
 def format_docs(docs: list[Document]) -> str:
+    print("*********** format_docs")
     return "\n\n".join(f"[{i}] {d.page_content}" for i, d in enumerate(docs, 1))

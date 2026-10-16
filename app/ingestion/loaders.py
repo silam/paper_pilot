@@ -46,12 +46,14 @@ class RawDocument:
     @property
     def content_hash(self) -> str:
         """Used for idempotent ingestion: same content -> skip re-embedding."""
+        print("*********** RawDocument.content_hash")
         return hashlib.sha256(self.text.encode()).hexdigest()
 
 
 # ---------------------------------------------------------------- arXiv API
 def fetch_arxiv(query: str, max_results: int = 20, retries: int = 3) -> list[RawDocument]:
     """Call the arXiv API with exponential backoff (APIs fail - plan for it)."""
+    print("*********** fetch_arxiv")
     params = {"search_query": query, "start": 0, "max_results": max_results,
               "sortBy": "submittedDate", "sortOrder": "descending"}
     for attempt in range(retries):
@@ -68,6 +70,7 @@ def fetch_arxiv(query: str, max_results: int = 20, retries: int = 3) -> list[Raw
 
 # ---------------------------------------------------------------- 
 def parse_arxiv_atom(xml_text: str) -> list[RawDocument]:
+    print("*********** parse_arxiv_atom")
     root = ET.fromstring(xml_text)
     docs = []
     for entry in root.findall(f"{ATOM}entry"):
@@ -87,6 +90,7 @@ def parse_arxiv_atom(xml_text: str) -> list[RawDocument]:
 # ---------------------------------------------------------------- local files
 def load_file(path: Path) -> list[RawDocument]:
     
+    print("*********** load_file")
     suffix = path.suffix.lower()
 
     if suffix == ".json":
@@ -116,6 +120,7 @@ def load_file(path: Path) -> list[RawDocument]:
 # ---------------------------------------------------------------- local load_directory
 
 def load_directory(directory: str | Path) -> list[RawDocument]:
+    print("*********** load_directory")
     docs: list[RawDocument] = []
     for p in sorted(Path(directory).rglob("*")):
         if p.is_file():

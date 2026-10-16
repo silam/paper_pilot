@@ -46,6 +46,7 @@ class VectorStore(Protocol):
 
 class ChromaStore:
     def __init__(self):
+        print("*********** ChromaStore.__init__")
         import chromadb
         s = get_settings()
         self.embedder = get_embedder()
@@ -59,6 +60,7 @@ class ChromaStore:
         )
 
     def upsert(self, chunks: list[Chunk]) -> int:
+        print("*********** ChromaStore.upsert")
         if not chunks:
             return 0
         batch = 128
@@ -74,6 +76,7 @@ class ChromaStore:
 
     def query(self, text: str, k: int, where: dict | None = None) -> list[Hit]:
 
+        print("*********** ChromaStore.query")
         print(f"Chrome Query = {text}")
         if self.col.count() == 0:
             return []
@@ -90,15 +93,18 @@ class ChromaStore:
         ]
 
     def all_chunks(self) -> list[Hit]:
+        print("*********** ChromaStore.all_chunks")
         res = self.col.get(include=["documents", "metadatas"])
         return [Hit(chunk_id=i, text=d, metadata=m or {}, score=0.0)
                 for i, d, m in zip(res["ids"], res["documents"], res["metadatas"])]
 
     def delete_doc(self, doc_id: str) -> None:
         """GDPR 'right to be forgotten' - remove every chunk of a document."""
+        print("*********** ChromaStore.delete_doc")
         self.col.delete(where={"doc_id": doc_id})
 
     def count(self) -> int:
+        print("*********** ChromaStore.count")
         return self.col.count()
 
 
@@ -106,6 +112,7 @@ class PineconeStore:  # pragma: no cover - needs a cloud account
     """Same interface, managed cloud backend. Enable with VECTOR_BACKEND=pinecone."""
 
     def __init__(self):
+        print("*********** PineconeStore.__init__")
         from pinecone import Pinecone
         s = get_settings()
         self.embedder = get_embedder()
@@ -113,6 +120,7 @@ class PineconeStore:  # pragma: no cover - needs a cloud account
         self._text: dict[str, str] = {}
 
     def upsert(self, chunks: list[Chunk]) -> int:
+        print("*********** PineconeStore.upsert")
         vecs = self.embedder.embed([c.text for c in chunks])
         self.index.upsert(vectors=[
             {"id": c.chunk_id, "values": v, "metadata": {**c.metadata, "text": c.text}}
@@ -122,21 +130,26 @@ class PineconeStore:  # pragma: no cover - needs a cloud account
 
     def query(self, text: str, k: int, where: dict | None = None) -> list[Hit]:
 
+        print("*********** PineconeStore.query")
         print(f"PineCone{text}")
         res = self.index.query(vector=self.embedder.embed([text])[0], top_k=k,
                                include_metadata=True, filter=where)
         return [Hit(m.id, m.metadata.get("text", ""), dict(m.metadata), m.score) for m in res.matches]
 
     def all_chunks(self) -> list[Hit]:
+        print("*********** PineconeStore.all_chunks")
         return []   # BM25 side would use a separate keyword index in this setup
 
     def delete_doc(self, doc_id: str) -> None:
+        print("*********** PineconeStore.delete_doc")
         self.index.delete(filter={"doc_id": doc_id})
 
     def count(self) -> int:
+        print("*********** PineconeStore.count")
         return self.index.describe_index_stats().total_vector_count
 
 
 @lru_cache
 def get_store() -> VectorStore:
+    print("*********** get_store")
     return PineconeStore() if get_settings().vector_backend == "pinecone" else ChromaStore()

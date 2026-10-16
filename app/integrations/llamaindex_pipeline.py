@@ -20,6 +20,7 @@ from app.ingestion.pipeline import SAMPLE
 
 
 def build_query_engine():
+    print("*********** build_query_engine")
     import chromadb
     from llama_index.core import Document, Settings, StorageContext, VectorStoreIndex
     from llama_index.core.node_parser import SentenceSplitter

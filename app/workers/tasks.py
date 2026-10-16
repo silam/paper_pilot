@@ -40,6 +40,7 @@ celery_app.conf.update(
 
 @celery_app.task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
 def ingest_arxiv_task(self, query: str, max_results: int = 25) -> dict:
+    print("*********** ingest_arxiv_task")
     from app.ingestion.loaders import fetch_arxiv
     from app.ingestion.pipeline import ingest_documents
     return ingest_documents(fetch_arxiv(query, max_results))
@@ -47,5 +48,6 @@ def ingest_arxiv_task(self, query: str, max_results: int = 25) -> dict:
 
 @celery_app.task
 def materialize_features_task() -> int:
+    print("*********** materialize_features_task")
     from app.feature_store import get_feature_store
     return get_feature_store().materialize()

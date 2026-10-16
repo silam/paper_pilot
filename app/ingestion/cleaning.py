@@ -36,6 +36,7 @@ PII_PATTERNS = {
 #--------------------------------------------------------------------------------------------
 def redact_pii(text: str) -> tuple[str, dict[str, int]]:
     """Replace PII with typed placeholders. Returns (clean_text, counts)."""
+    print("*********** redact_pii")
     counts: dict[str, int] = {}
     for label, pattern in PII_PATTERNS.items():
         text, n = pattern.subn(f"[{label}]", text)
@@ -45,6 +46,7 @@ def redact_pii(text: str) -> tuple[str, dict[str, int]]:
 
 #--------------------------------------------------------------------------------------------
 def clean_text(text: str) -> str:
+    print("*********** clean_text")
     text = unicodedata.normalize("NFKC", text)
     text = "".join(ch for ch in text if ch == "\n" or unicodedata.category(ch)[0] != "C")
     text = _HYPHEN_BREAK.sub(r"\1\2", text)
@@ -58,6 +60,7 @@ def clean_text(text: str) -> str:
 def clean_documents(docs: list[RawDocument], redact: bool = True,
                     min_chars: int = 50) -> tuple[list[RawDocument], dict]:
     """Clean + dedupe + redact. Returns docs and a small data-quality report."""
+    print("*********** clean_documents")
     seen_hashes: set[str] = set()
     out: list[RawDocument] = []
     report = {"input": len(docs), "too_short": 0, "duplicates": 0, "pii_redacted": 0}

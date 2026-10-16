@@ -36,6 +36,7 @@ class Chunk:
 
 #----------------------------------------------------------------------------------
 def _recursive_split(text: str, size: int, separators: tuple[str, ...] = ("\n\n", "\n", ". ", " ")) -> list[str]:
+    print("*********** _recursive_split")
     if len(text) <= size:
         return [text]
     if not separators:
@@ -63,6 +64,7 @@ def _recursive_split(text: str, size: int, separators: tuple[str, ...] = ("\n\n"
 #----------------------------------------------------------------------------------
 def _with_overlap(pieces: list[str], overlap: int) -> list[str]:
     """Prefix each chunk with the tail of the previous one."""
+    print("*********** _with_overlap")
     if overlap <= 0:
         return pieces
     out = [pieces[0]] if pieces else []
@@ -74,6 +76,7 @@ def _with_overlap(pieces: list[str], overlap: int) -> list[str]:
 
 #----------------------------------------------------------------------------------
 def _sentence_split(text: str, size: int) -> list[str]:
+    print("*********** _sentence_split")
     sentences = _SENTENCE_SPLIT.split(text)
     chunks, buf = [], ""
     for s in sentences:
@@ -93,6 +96,7 @@ def chunk_document(doc: RawDocument,
                    strategy: str = "recursive" #Chunk strategy
                    ) -> list[Chunk]:
     
+    print("*********** chunk_document")
     if strategy == "sentence":
         pieces = _sentence_split(doc.text, size)
     else:

@@ -28,11 +28,13 @@ from app.observability import CACHE
 
 
 def _norm(q: str) -> str:
+    print("*********** _norm")
     return " ".join(q.lower().split())
 
 
 class AnswerCache:
     def __init__(self):
+        print("*********** AnswerCache.__init__")
         s = get_settings()
         self.ttl = s.cache_ttl_seconds
         self.threshold = s.semantic_cache_threshold
@@ -45,6 +47,7 @@ class AnswerCache:
 
     # ---- low-level kv
     def _get(self, key: str) -> str | None:
+        print("*********** AnswerCache._get")
         if self.redis:
             return self.redis.get(key)
         item = self._mem.get(key)
@@ -53,6 +56,7 @@ class AnswerCache:
         return None
 
     def _set(self, key: str, value: str) -> None:
+        print("*********** AnswerCache._set")
         if self.redis:
             self.redis.setex(key, self.ttl, value)
         else:
@@ -60,9 +64,11 @@ class AnswerCache:
 
     # ---- public API
     def key(self, question: str, namespace: str) -> str:
+        print("*********** AnswerCache.key")
         return "pp:ans:" + hashlib.sha256(f"{namespace}|{_norm(question)}".encode()).hexdigest()
 
     def get(self, question: str, namespace: str) -> tuple[dict | None, str]:
+        print("*********** AnswerCache.get")
         hit = self._get(self.key(question, namespace))
         if hit:
             CACHE.labels("exact_hit").inc()
@@ -83,6 +89,7 @@ class AnswerCache:
         return None, "miss"
 
     def set(self, question: str, namespace: str, value: dict) -> None:
+        print("*********** AnswerCache.set")
         k = self.key(question, namespace)
         self._set(k, json.dumps(value))
         vec = get_embedder().embed([_norm(question)])[0]
@@ -94,11 +101,13 @@ class AnswerCache:
             self._semantic = self._semantic[-5000:]
 
     def _load_semantic(self):
+        print("*********** AnswerCache._load_semantic")
         if self.redis:
             return [tuple(json.loads(x)) for x in self.redis.lrange("pp:semantic", 0, -1)]
         return self._semantic
 
     def clear(self) -> None:
+        print("*********** AnswerCache.clear")
         if self.redis:
             for k in self.redis.scan_iter("pp:*"):
                 self.redis.delete(k)
@@ -108,4 +117,5 @@ class AnswerCache:
 
 @lru_cache
 def get_cache() -> AnswerCache:
+    print("*********** get_cache")
     return AnswerCache()

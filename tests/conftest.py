@@ -15,6 +15,7 @@ import pytest  # noqa: E402
 @pytest.fixture(scope="session")
 def indexed():
     """Ingest the bundled sample dataset once per test session."""
+    print("*********** indexed")
     from app.ingestion.loaders import load_file
     from app.ingestion.pipeline import SAMPLE, ingest_documents
     return ingest_documents(load_file(SAMPLE))
@@ -22,6 +23,7 @@ def indexed():
 
 @pytest.fixture(scope="session")
 def client(indexed):
+    print("*********** client")
     from fastapi.testclient import TestClient
 
     from app.main import app

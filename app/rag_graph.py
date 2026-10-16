@@ -80,6 +80,7 @@ class RAGState(TypedDict, total=False):
 
 # ------------------------------------------------------------------ nodes
 def input_guard(state: RAGState) -> RAGState:
+    print("*********** input_guard")
     with span("input_guard") as sp:
         if not get_settings().enable_guardrails:
             return {"query": state["question"], "guard_reasons": []}
@@ -96,6 +97,7 @@ def input_guard(state: RAGState) -> RAGState:
 
 
 def rewrite(state: RAGState) -> RAGState:
+    print("*********** rewrite")
     attempts = state.get("attempts", 0)
     with span("rewrite", attempt=attempts):
         if attempts > 0:
@@ -117,6 +119,7 @@ def rewrite(state: RAGState) -> RAGState:
 
 
 def retrieve(state: RAGState) -> RAGState:
+    print("*********** retrieve")
     with span("retrieve") as sp:
         hits = hybrid_search(state["query"], where=state.get("filters"), alpha=state.get("alpha"))
         # Online feature lookup -> tiny boost for docs users rated well.
@@ -137,6 +140,7 @@ def grade_docs(state: RAGState) -> RAGState:
     relevance = max(semantic similarity, keyword coverage of the question)
     (Production upgrade: a cross-encoder or a small LLM grader returning yes/no.)
     """
+    print("*********** grade_docs")
     # with ... as sp:: This is Python's context manager syntax. 
     # It guarantees that a specific setup happens before the code runs 
     # and a cleanup happens after it finishes—even if your code crashes or raises an error.
@@ -160,6 +164,7 @@ def grade_docs(state: RAGState) -> RAGState:
 
 #-------------------------------------------------------------------
 def generate(state: RAGState) -> RAGState:
+    print("*********** generate")
     with span("generate") as sp:
         relevant = state.get("relevant", [])
         if not relevant:
@@ -180,6 +185,7 @@ def generate(state: RAGState) -> RAGState:
 
 
 def validate(state: RAGState) -> RAGState:
+    print("*********** validate")
     with span("validate") as sp:
         answer, leaks = check_output(state["answer"]) #edacts PII and returns any detected leaks. 
         sources = [h.text for h in state.get("relevant", [])]
@@ -205,27 +211,32 @@ def validate(state: RAGState) -> RAGState:
 
 #----------------------------------------------------------------------
 def human_review(state: RAGState) -> RAGState:
+    print("*********** human_review")
     HITL.inc()
     with span("human_review"):
         return {"status": "needs_review"}
 
 #----------------------------------------------------------------------
 def finalize(state: RAGState) -> RAGState:
+    print("*********** finalize")
     return {"status": "answered"}
 
 
 #---------------------------------------------------------------------- routing
 def after_guard(state: RAGState) -> str:
+    print("*********** after_guard")
     return "blocked" if state.get("status") == "blocked" else "ok"
 
 
 def after_grade(state: RAGState) -> str:
+    print("*********** after_grade")
     if not state.get("relevant") and state.get("attempts", 0) < 2:
         return "retry"
     return "generate"
 
 
 def after_validate(state: RAGState) -> str:
+    print("*********** after_validate")
     s = get_settings()
     g = state.get("groundedness", {}).get("score", 0.0)
     bad_cites = state.get("citations", {}).get("invalid")
@@ -236,6 +247,7 @@ def after_validate(state: RAGState) -> str:
 
 
 def _usage(state: RAGState, r) -> dict[str, Any]:
+    print("*********** _usage")
     return {"input_tokens": state.get("input_tokens", 0) + r.input_tokens,
             "output_tokens": state.get("output_tokens", 0) + r.output_tokens,
             "cost_usd": state.get("cost_usd", 0.0) + r.cost_usd}
@@ -243,6 +255,7 @@ def _usage(state: RAGState, r) -> dict[str, Any]:
 
 # ------------------------------------------------------------------ build
 def build_graph():
+    print("*********** build_graph")
     g = StateGraph(RAGState)
     for name, fn in [("input_guard", input_guard), ("rewrite", rewrite), ("retrieve", retrieve),
                      ("grade_docs", grade_docs), ("generate", generate), ("validate", validate),
@@ -264,6 +277,7 @@ _GRAPH = None
 
 
 def run_rag(question: str, prompt_version: str = "rag_v1", filters: dict | None = None) -> RAGState:
+    print("*********** run_rag")
     global _GRAPH
     if _GRAPH is None:
         _GRAPH = build_graph()

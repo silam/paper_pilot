@@ -31,6 +31,7 @@ _STOP = set("the a an of to in and or for on with is are was were be by as at fr
 
 
 def tokenize(text: str) -> list[str]:
+    print("*********** tokenize")
     return [t for t in _TOK.findall(text.lower()) if t not in _STOP] # if t is not in the set of STOP words
 
 
@@ -38,12 +39,14 @@ class BM25Index:
     """In-process keyword index rebuilt when the corpus changes."""
 
     def __init__(self):
+        print("*********** BM25Index.__init__")
         self._lock = threading.Lock()
         self._version = -1
         self._bm25: BM25Okapi | None = None
         self._hits: list[Hit] = []
 
     def refresh(self, force: bool = False) -> None:
+        print("*********** BM25Index.refresh")
         store = get_store()
         version = store.count()          # cheap change detector
         with self._lock:
@@ -56,6 +59,7 @@ class BM25Index:
 
     def search(self, query: str, k: int) -> list[Hit]:
 
+        print("*********** BM25Index.search")
         print(f"Search = {query}")
 
         self.refresh()
@@ -120,6 +124,7 @@ and then sort by that score.
 """
 
 def rrf_fuse(ranked_lists: list[list[Hit]], weights: list[float], k: int = 60) -> list[Hit]:
+    print("*********** rrf_fuse")
     fused: dict[str, float] = {}
     by_id: dict[str, Hit] = {}
     for hits, w in zip(ranked_lists, weights):
@@ -143,10 +148,12 @@ def rrf_fuse(ranked_lists: list[list[Hit]], weights: list[float], k: int = 60) -
 #---------------------------------------------------------------------------------------
 class CrossEncoderReranker:  # optional, enabled when sentence-transformers is installed
     def __init__(self, model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
+        print("*********** CrossEncoderReranker.__init__")
         from sentence_transformers import CrossEncoder
         self.model = CrossEncoder(model)
 
     def rerank(self, query: str, hits: list[Hit], k: int) -> list[Hit]:
+        print("*********** CrossEncoderReranker.rerank")
         scores = self.model.predict([(query, h.text) for h in hits])
         ranked = sorted(zip(hits, scores), key=lambda x: x[1], reverse=True)[:k]
         return [h for h, _ in ranked]
@@ -154,6 +161,7 @@ class CrossEncoderReranker:  # optional, enabled when sentence-transformers is i
 #----------------------------------------------------------------------------------
 def hybrid_search(query: str, k: int | None = None, where: dict | None = None,
                   alpha: float | None = None) -> list[Hit]:
+    print("*********** hybrid_search")
     s = get_settings()
     k = k or s.top_k
     alpha = s.hybrid_alpha if alpha is None else alpha
@@ -182,4 +190,5 @@ def hybrid_search(query: str, k: int | None = None, where: dict | None = None,
 
 
 def refresh_keyword_index() -> None:
+    print("*********** refresh_keyword_index")
     _bm25.refresh(force=True)

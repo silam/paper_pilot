@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 def produce(query: str, max_results: int) -> int:
+    print("*********** produce")
     from kafka import KafkaProducer
 
     from app.ingestion.loaders import fetch_arxiv
@@ -54,6 +55,7 @@ def produce(query: str, max_results: int) -> int:
 
 
 def consume(batch_size: int = 16, max_wait_s: float = 5.0) -> None:
+    print("*********** consume")
     from kafka import KafkaConsumer, KafkaProducer
 
     from app.ingestion.loaders import RawDocument

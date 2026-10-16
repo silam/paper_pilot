@@ -21,6 +21,7 @@ st.set_page_config(page_title="PaperPilot", page_icon="📄", layout="wide")
 
 
 def api(method: str, path: str, **kw):
+    print("*********** api")
     try:
         r = httpx.request(method, f"{API}{path}", timeout=120, **kw)
         r.raise_for_status()

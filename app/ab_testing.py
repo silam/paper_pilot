@@ -20,6 +20,7 @@ EXPERIMENTS = {
 
 
 def assign_variant(user_id: str, experiment: str = "prompt_style") -> str:
+    print("*********** assign_variant")
     variants = EXPERIMENTS[experiment]["variants"]
     bucket = int(hashlib.sha256(f"{experiment}:{user_id}".encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
     cumulative = 0.0
@@ -32,6 +33,7 @@ def assign_variant(user_id: str, experiment: str = "prompt_style") -> str:
 
 def two_proportion_z_test(success_a: int, n_a: int, success_b: int, n_b: int) -> dict:
     """Is variant B's success rate significantly different from A's?"""
+    print("*********** two_proportion_z_test")
     if min(n_a, n_b) == 0:
         return {"z": 0.0, "p_value": 1.0}
     p_a, p_b = success_a / n_a, success_b / n_b

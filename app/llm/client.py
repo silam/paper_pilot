@@ -38,6 +38,7 @@ class LLMResult:
 
     @property
     def cost_usd(self) -> float:
+        print("*********** LLMResult.cost_usd")
         if self.model.startswith("offline"):
             return 0.0                      # local extractive mode is free
         s = get_settings()
@@ -46,6 +47,7 @@ class LLMResult:
 
 class LLMClient:
     def __init__(self):
+        print("*********** LLMClient.__init__")
         self.s = get_settings()
         self.provider = self.s.llm_provider
         if self.provider == "anthropic":
@@ -60,6 +62,7 @@ class LLMClient:
 
     @property
     def model_name(self) -> str:
+        print("*********** LLMClient.model_name")
         return {"anthropic": self.s.anthropic_model, "openai": self.s.openai_model,
                 "vllm": self.s.vllm_model}.get(self.provider, "offline-extractive")
 
@@ -67,6 +70,7 @@ class LLMClient:
     def complete(self, system: str, user: str, max_tokens: int | None = None,
                  retries: int = 2) -> LLMResult:
         """Call the model with retry + timing + token accounting."""
+        print("*********** LLMClient.complete")
         t0 = time.perf_counter()
         last_err: Exception | None = None
         for attempt in range(retries + 1):
@@ -90,6 +94,7 @@ class LLMClient:
         return result
 
     def _call(self, system: str, user: str, max_tokens: int) -> LLMResult:
+        print("*********** LLMClient._call")
         if self.provider == "anthropic":
             r = self._anthropic.messages.create(
                 model=self.s.anthropic_model, system=system, max_tokens=max_tokens,
@@ -116,11 +121,13 @@ _STOP = set("the a an of to in and or for on with is are was were be by as at fr
 
 
 def _words(t: str) -> set[str]:
+    print("*********** _words")
     return {w for w in _WORD.findall(t.lower()) if w not in _STOP and len(w) > 2}
 
 
 def offline_complete(system: str, user: str) -> LLMResult:
     """Extractive answerer: picks the context sentences that best overlap the question."""
+    print("*********** offline_complete")
     est_in = len(system + user) // 4
     if "<context>" not in user:                       # rewrite / judge prompts
         q = user.split("Question:", 1)[-1].split("Search query:")[0].strip()
@@ -161,4 +168,5 @@ def offline_complete(system: str, user: str) -> LLMResult:
 
 @lru_cache
 def get_llm() -> LLMClient:
+    print("*********** get_llm")
     return LLMClient()

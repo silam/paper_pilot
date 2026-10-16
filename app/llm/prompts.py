@@ -27,6 +27,7 @@ class PromptTemplate:
     user: str
 
     def render(self, **kwargs) -> tuple[str, str]:
+        print("*********** PromptTemplate.render")
         return self.system, self.user.format(**kwargs)
 
 
@@ -72,11 +73,13 @@ GROUNDEDNESS_JUDGE = PromptTemplate(
 
 
 def get_prompt(version: str) -> PromptTemplate:
+    print("*********** get_prompt")
     return PROMPTS.get(version, PROMPTS["rag_v1"])
 
 
 def format_context(hits) -> str:
     """Number the chunks so the model can cite them as [n]."""
+    print("*********** format_context")
     return "\n\n".join(
         f"[{i}] ({h.metadata.get('title', 'unknown')})\n{h.text}" for i, h in enumerate(hits, 1)
     )

@@ -28,6 +28,7 @@ from prometheus_client import Counter, Histogram
 # ---------------------------------------------------------------- logging
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
+        print("*********** JsonFormatter.format")
         payload = {
             "ts": round(record.created, 3),
             "level": record.levelname,
@@ -41,6 +42,7 @@ class JsonFormatter(logging.Formatter):
 
 
 def setup_logging(level: str = "INFO") -> None:
+    print("*********** setup_logging")
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
     root = logging.getLogger()
@@ -49,6 +51,7 @@ def setup_logging(level: str = "INFO") -> None:
 
 
 def log_event(logger: logging.Logger, msg: str, **fields: Any) -> None:
+    print("*********** log_event")
     logger.info(msg, extra={"extra_fields": fields})
 
 
@@ -71,10 +74,12 @@ _spans: contextvars.ContextVar[list | None] = contextvars.ContextVar("spans", de
 
 
 def current_trace_id() -> str:
+    print("*********** current_trace_id")
     return _trace_id.get()
 
 
 def start_trace() -> str:
+    print("*********** start_trace")
     tid = uuid.uuid4().hex[:16]
     _trace_id.set(tid)
     _spans.set([])
@@ -82,12 +87,14 @@ def start_trace() -> str:
 
 
 def get_spans() -> list[dict]:
+    print("*********** get_spans")
     return list(_spans.get() or [])
 
 
 @contextmanager
 def span(name: str, **attrs: Any):
     """Time a block, record it as a span AND as a Prometheus histogram sample."""
+    print("*********** span")
     t0 = time.perf_counter()
     record: dict[str, Any] = {"name": name, **attrs}
     try:

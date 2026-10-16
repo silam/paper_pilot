@@ -24,6 +24,7 @@ from app.config import get_settings
 
 
 def _now() -> datetime:
+    print("*********** _now")
     return datetime.now(UTC)
 
 
@@ -83,6 +84,7 @@ class ReviewItem(Base):
 
 @lru_cache
 def _engine():
+    print("*********** _engine")
     url = get_settings().database_url
     if url.startswith("sqlite:///"):
         from pathlib import Path
@@ -93,11 +95,13 @@ def _engine():
 
 
 def get_session() -> Session:
+    print("*********** get_session")
     return sessionmaker(bind=_engine(), expire_on_commit=False)()
 
 
 def prompt_version_report(session: Session) -> list[dict]:
     """SQL analytics for A/B testing: quality, latency, cost & thumbs per variant."""
+    print("*********** prompt_version_report")
     rows = session.execute(
         select(
             QueryLog.prompt_version,

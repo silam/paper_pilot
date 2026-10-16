@@ -27,6 +27,7 @@ from app.retrieval import hybrid_search  # noqa: E402
 
 
 def section(title: str) -> None:
+    print("*********** section")
     print(f"\n{'=' * 78}\n {title}\n{'=' * 78}")
 
 

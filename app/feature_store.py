@@ -35,6 +35,7 @@ DEFAULTS = {"doc_citation_count": 0, "doc_feedback_score": 0.0, "doc_freshness_d
 
 class FeatureStore:
     def __init__(self):
+        print("*********** FeatureStore.__init__")
         s = get_settings()
         self.redis = None
         if s.redis_url:
@@ -43,12 +44,14 @@ class FeatureStore:
         self._mem: dict[str, dict] = {}
 
     def _write(self, doc_id: str, feats: dict) -> None:
+        print("*********** FeatureStore._write")
         if self.redis:
             self.redis.hset("pp:features:doc", doc_id, json.dumps(feats))
         else:
             self._mem[doc_id] = feats
 
     def get_doc_features(self, doc_ids: list[str]) -> dict[str, dict]:
+        print("*********** FeatureStore.get_doc_features")
         if self.redis and doc_ids:
             raw = self.redis.hmget("pp:features:doc", doc_ids)
             return {d: (json.loads(r) if r else dict(DEFAULTS)) for d, r in zip(doc_ids, raw)}
@@ -56,6 +59,7 @@ class FeatureStore:
 
     def materialize(self) -> int:
         """Offline computation -> online store. Returns #docs updated."""
+        print("*********** FeatureStore.materialize")
         session = get_session()
         citations: dict[str, int] = defaultdict(int)
         ratings: dict[str, list[int]] = defaultdict(list)
@@ -88,9 +92,11 @@ class FeatureStore:
 
 def feature_boost(feats: dict) -> float:
     """Small, bounded boost so behaviour signals break ties, never dominate relevance."""
+    print("*********** feature_boost")
     return 0.03 * max(-1.0, min(1.0, feats.get("doc_feedback_score", 0.0)))
 
 
 @lru_cache
 def get_feature_store() -> FeatureStore:
+    print("*********** get_feature_store")
     return FeatureStore()

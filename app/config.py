@@ -87,4 +87,5 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Cached singleton - settings are parsed once per process."""
+    print("*********** get_settings")
     return Settings()

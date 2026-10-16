@@ -40,6 +40,7 @@ class Embedder(Protocol):
 
 
 def _normalize(v: list[float]) -> list[float]:
+    print("*********** _normalize")
     n = math.sqrt(sum(x * x for x in v)) or 1.0
     return [x / n for x in v]
 
@@ -48,14 +49,17 @@ class HashEmbedder:
     """Deterministic hashing-trick embedder (offline fallback)."""
 
     def __init__(self, dim: int = 384):
+        print("*********** HashEmbedder.__init__")
         self.dim = dim
         self.name = f"hash-{dim}"
 
     def _features(self, text: str) -> list[str]:
+        print("*********** HashEmbedder._features")
         toks = _TOKEN.findall(text.lower())
         return toks + [f"{a}_{b}" for a, b in zip(toks, toks[1:])]
 
     def embed(self, texts: list[str]) -> list[list[float]]:
+        print("*********** HashEmbedder.embed")
         out = []
         for t in texts:
             v = [0.0] * self.dim
@@ -70,12 +74,14 @@ class HFEmbedder:
     """Hugging Face sentence-transformers embedder."""
 
     def __init__(self, model_name: str):
+        print("*********** HFEmbedder.__init__")
         from sentence_transformers import SentenceTransformer  # heavy import -> lazy
         self.model = SentenceTransformer(model_name)
         self.dim = self.model.get_sentence_embedding_dimension()
         self.name = model_name
 
     def embed(self, texts: list[str]) -> list[list[float]]:
+        print("*********** HFEmbedder.embed")
         vecs = self.model.encode(texts, batch_size=32, normalize_embeddings=True,
                                  show_progress_bar=False)
         return vecs.tolist()
@@ -83,6 +89,7 @@ class HFEmbedder:
 
 @lru_cache
 def get_embedder() -> Embedder:
+    print("*********** get_embedder")
     s = get_settings()
     if s.embedding_backend == "hf":
         return HFEmbedder(s.embedding_model)
@@ -90,4 +97,5 @@ def get_embedder() -> Embedder:
 
 
 def cosine(a: list[float], b: list[float]) -> float:
+    print("*********** cosine")
     return sum(x * y for x, y in zip(a, b))   # inputs are normalised

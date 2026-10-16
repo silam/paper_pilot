@@ -111,6 +111,7 @@ RATE_LIMIT = 30          # requests per minute per client (abuse & cost protecti
 
 @app.middleware("http")
 async def rate_limit_and_trace(request: Request, call_next):
+    print("*********** rate_limit_and_trace")
     if request.url.path == "/ask":
         ip = request.client.host if request.client else "unknown"
         q, now = _buckets[ip], time.time()
@@ -126,6 +127,7 @@ async def rate_limit_and_trace(request: Request, call_next):
 # ------------------------------------------------------------------ core endpoint
 @app.post("/ask", response_model=AskResponse)
 def ask(req: AskRequest) -> AskResponse:
+    print("*********** ask")
     trace_id = start_trace()
     t0 = time.perf_counter()
     version = req.prompt_version or assign_variant(req.user_id)
@@ -186,6 +188,7 @@ def ask(req: AskRequest) -> AskResponse:
 # ------------------------------------------------------------------ ingestion
 @app.post("/ingest")
 def ingest(req: IngestRequest):
+    print("*********** ingest")
     if req.run_async:
         from app.workers.tasks import ingest_arxiv_task
         task = ingest_arxiv_task.delay(req.query, req.max_results)
@@ -198,6 +201,7 @@ def ingest(req: IngestRequest):
 
 @app.post("/upload")
 def upload(file: UploadFile = File(...)):
+    print("*********** upload")
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in {".pdf", ".md", ".txt"}:
         raise HTTPException(400, "only .pdf, .md, .txt supported")
@@ -213,6 +217,7 @@ def upload(file: UploadFile = File(...)):
 @app.delete("/documents/{doc_id:path}")
 def delete_document(doc_id: str):
     """GDPR Art. 17 erasure: vectors + catalogue + cached answers."""
+    print("*********** delete_document")
     get_store().delete_doc(doc_id)
     session = get_session()
     doc = session.get(Document, doc_id)
@@ -227,6 +232,7 @@ def delete_document(doc_id: str):
 
 @app.get("/documents")
 def list_documents():
+    print("*********** list_documents")
     session = get_session()
     docs = session.scalars(select(Document)).all()
     session.close()
@@ -236,6 +242,7 @@ def list_documents():
 # ------------------------------------------------------------------ feedback & HITL
 @app.post("/feedback")
 def feedback(req: FeedbackRequest):
+    print("*********** feedback")
     session = get_session()
     if not session.get(QueryLog, req.query_id):
         raise HTTPException(404, "unknown query_id")
@@ -250,6 +257,7 @@ def feedback(req: FeedbackRequest):
 
 @app.get("/review")
 def review_queue(status: str = "pending"):
+    print("*********** review_queue")
     session = get_session()
     rows = session.execute(
         select(ReviewItem, QueryLog).join(QueryLog, QueryLog.id == ReviewItem.query_id)
@@ -262,6 +270,7 @@ def review_queue(status: str = "pending"):
 
 @app.post("/review/{review_id}")
 def review_decide(review_id: int, action: ReviewAction):
+    print("*********** review_decide")
     session = get_session()
     item = session.get(ReviewItem, review_id)
     if not item:
@@ -276,6 +285,7 @@ def review_decide(review_id: int, action: ReviewAction):
 # ------------------------------------------------------------------ analytics & ops
 @app.get("/stats/ab")
 def ab_stats():
+    print("*********** ab_stats")
     session = get_session()
     report = prompt_version_report(session)
     session.close()
@@ -284,16 +294,19 @@ def ab_stats():
 
 @app.post("/features/materialize")
 def materialize_features():
+    print("*********** materialize_features")
     return {"docs_updated": get_feature_store().materialize()}
 
 
 @app.get("/health")
 def health():
+    print("*********** health")
     return {"status": "ok"}
 
 
 @app.get("/ready")
 def ready():
+    print("*********** ready")
     try:
         n = get_store().count()
         get_session().close()
@@ -305,4 +318,5 @@ def ready():
 
 @app.get("/metrics")
 def metrics():
+    print("*********** metrics")
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

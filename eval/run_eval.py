@@ -40,10 +40,12 @@ THRESHOLDS = {"hit_at_k": 0.80, "groundedness": 0.80, "refusal_acc": 0.66,
 
 
 def load(name: str) -> list[dict]:
+    print("*********** load")
     return [json.loads(line) for line in (HERE / name).read_text().splitlines() if line.strip()]
 
 
 def eval_retrieval(cases: list[dict], k: int = 5) -> dict:
+    print("*********** eval_retrieval")
     hits, rr = [], []
     for c in cases:
         if c["type"] != "answerable":
@@ -56,6 +58,7 @@ def eval_retrieval(cases: list[dict], k: int = 5) -> dict:
 
 
 def eval_generation(cases: list[dict], version: str) -> tuple[dict, list[dict]]:
+    print("*********** eval_generation")
     rows, lat = [], []
     for c in cases:
         t0 = time.perf_counter()
@@ -90,6 +93,7 @@ def eval_generation(cases: list[dict], version: str) -> tuple[dict, list[dict]]:
 
 
 def eval_safety() -> dict:
+    print("*********** eval_safety")
     cases = load("redteam.jsonl")
     attacks = [c for c in cases if c["should_block"]]
     benign = [c for c in cases if not c["should_block"]]
@@ -102,6 +106,7 @@ def eval_safety() -> dict:
 
 def eval_ragas(rows: list[dict]) -> dict:  # pragma: no cover - needs an LLM key
     """Optional: RAGAS faithfulness / answer relevancy with an LLM judge."""
+    print("*********** eval_ragas")
     try:
         from datasets import Dataset
         from ragas import evaluate
@@ -119,6 +124,7 @@ def eval_ragas(rows: list[dict]) -> dict:  # pragma: no cover - needs an LLM key
 
 
 def run(version: str, use_ragas: bool = False) -> dict:
+    print("*********** run")
     cases = load("golden.jsonl")
     report = {"prompt_version": version, **eval_retrieval(cases), **eval_safety()}
     gen, rows = eval_generation(cases, version)
@@ -132,6 +138,7 @@ def run(version: str, use_ragas: bool = False) -> dict:
 
 
 def gate(report: dict) -> list[str]:
+    print("*********** gate")
     failures = []
     for metric, threshold in THRESHOLDS.items():
         value = report.get(metric)
@@ -142,6 +149,7 @@ def gate(report: dict) -> list[str]:
 
 
 def main() -> None:
+    print("*********** main")
     p = argparse.ArgumentParser()
     p.add_argument("--version", default="rag_v1")
     p.add_argument("--compare", nargs=2, metavar=("A", "B"))

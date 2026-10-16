@@ -35,6 +35,7 @@ SAMPLE = Path(__file__).resolve().parents[2] / "data" / "sample" / "papers.json"
 
 
 def ingest_documents(docs: list[RawDocument]) -> dict:
+    print("*********** ingest_documents")
     s = get_settings() # return base settings for safety, guard rails, cost, queueing like kafka
     
     t0 = time.perf_counter() # performance counter for benchmark
@@ -83,6 +84,7 @@ def ingest_documents(docs: list[RawDocument]) -> dict:
 
 
 def main() -> None:
+    print("*********** main")
     p = argparse.ArgumentParser(description="PaperPilot ingestion pipeline")
     p.add_argument("--source", choices=["sample", "arxiv", "dir", "file"], default="sample")
     p.add_argument("--query", default="cat:cs.CL AND abs:retrieval augmented generation")

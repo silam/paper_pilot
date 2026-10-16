@@ -45,6 +45,7 @@ class GuardResult:
 
 
 def check_input(query: str, max_len: int = 2000) -> GuardResult:
+    print("*********** check_input")
     print(f"***********{query}")
     reasons = []
     if len(query) > max_len:
@@ -71,6 +72,7 @@ _INSTRUCTION_LINE = re.compile(
 
 def sanitize_context(text: str) -> tuple[str, bool]:
     """Strip instruction-like lines from retrieved chunks (indirect injection)."""
+    print("*********** sanitize_context")
     cleaned, n = _INSTRUCTION_LINE.subn("[removed: instruction-like text]", text)
     return cleaned, n > 0
 
@@ -90,6 +92,7 @@ for filtering, scoring, similarity checks, or guardrail logic.
 
 """
 def _content_words(t: str) -> set[str]:
+    print("*********** _content_words")
     return {w for w in _W.findall(t.lower()) if w not in _STOP and len(w) > 2}
 
 """
@@ -125,6 +128,7 @@ def groundedness(answer: str, sources: list[str]) -> dict:
     It's a cheap first line. For higher accuracy swap in an NLI model
     (e.g. a DeBERTa MNLI cross-encoder) or LLM-as-judge (see judge_groundedness).
     """
+    print("*********** groundedness")
     if "don't know" in answer.lower():
         return {"score": 1.0, "sentences": [], "unsupported": []}   # refusal is grounded
 
@@ -152,6 +156,7 @@ def groundedness(answer: str, sources: list[str]) -> dict:
 
 #------------------------------------------------------------------ citation guard
 def check_citations(answer: str, n_sources: int) -> dict:
+    print("*********** check_citations")
     cited = {int(c) for c in re.findall(r"\[(\d+)\]", answer)}
     invalid = sorted(c for c in cited if c < 1 or c > n_sources)
     return {"cited": sorted(cited), "invalid": invalid,
@@ -159,12 +164,14 @@ def check_citations(answer: str, n_sources: int) -> dict:
 
 
 def check_output(answer: str) -> tuple[str, list[str]]:
+    print("*********** check_output")
     redacted, pii = redact_pii(answer)
     return redacted, ([f"pii_leak:{k}" for k in pii] if pii else [])
 
 
 def judge_groundedness(llm, answer: str, context: str) -> float | None:
     """LLM-as-judge variant (used when a real LLM is configured)."""
+    print("*********** judge_groundedness")
     from app.llm.prompts import GROUNDEDNESS_JUDGE
     system, user = GROUNDEDNESS_JUDGE.render(context=context, answer=answer)
     try:
