@@ -92,7 +92,7 @@ Every item from the AI-engineer skill list maps to real, running code:
 | | Human-in-the-loop review queue | `app/rag_graph.py`, `/review`, UI "Human review" tab |
 | | Privacy & compliance (PII redaction at ingest, GDPR erasure endpoint) | `app/ingestion/cleaning.py`, `DELETE /documents/{id}` |
 | | UX for AI (citations, confidence badge, feedback, transparent review state) | `ui/streamlit_app.py` |
-| | Problem framing & business impact | `docs/INTERVIEW_GUIDE.md` |
+| | Problem framing & business impact | `docs/DISCUSSION_GUIDE.md` |
 
 ---
 
@@ -170,8 +170,8 @@ app/
 eval/                  golden set, red-team set, harness + quality gate
 ui/                    Streamlit app
 k8s/ monitoring/ deploy/ feature_repo/ .github/
-docs/                  CODE_WALKTHROUGH.md, INTERVIEW_GUIDE.md
+docs/                  CODE_WALKTHROUGH.md, DISCUSSION_GUIDE.md
 ```
 
 See **[docs/CODE_WALKTHROUGH.md](docs/CODE_WALKTHROUGH.md)** for a file-by-file explanation and
-**[docs/INTERVIEW_GUIDE.md](docs/INTERVIEW_GUIDE.md)** for the demo script and Q&A prep.
+**[docs/DISCUSSION_GUIDE.md](docs/DISCUSSION_GUIDE.md)** for the demo script and Q&A prep.

@@ -19,13 +19,16 @@ import unicodedata
 
 from app.ingestion.loaders import RawDocument
 
-_HYPHEN_BREAK = re.compile(r"(\w)-\n(\w)")
-_LATEX_CMD = re.compile(r"\\(?:cite|ref|label|footnote)\{[^}]*\}")
-_INLINE_MATH = re.compile(r"\$[^$]{1,80}\$")
-_WS = re.compile(r"[ \t]+")
-_MULTI_NL = re.compile(r"\n{3,}")
+# --- Regex patterns for cleaning and PII detection
+_HYPHEN_BREAK = re.compile(r"(\w)-\n(\w)") # matches hyphenated line breaks like "trans-\nformer"
+_LATEX_CMD = re.compile(r"\\(?:cite|ref|label|footnote)\{[^}]*\}") # matches LaTeX commands like \cite{...}
+_INLINE_MATH = re.compile(r"\$[^$]{1,80}\$") # matches inline math expressions like $x^2$
+_WS = re.compile(r"[ \t]+") # matches sequences of spaces or tabs
+_MULTI_NL = re.compile(r"\n{3,}") # matches three or more consecutive newlines
 
 # --- PII patterns (regex baseline; production would add an NER model like Presidio)
+# matches common types of personally identifiable information (PII) like emails, phone numbers, SSNs, and credit cards  
+
 PII_PATTERNS = {
     "EMAIL": re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"),
     "PHONE": re.compile(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
@@ -39,6 +42,7 @@ def redact_pii(text: str) -> tuple[str, dict[str, int]]:
     print("*********** redact_pii")
     counts: dict[str, int] = {}
     for label, pattern in PII_PATTERNS.items():
+        # Replace all occurrences of the PII pattern with a placeholder and count them.
         text, n = pattern.subn(f"[{label}]", text)
         if n:
             counts[label] = n
@@ -47,6 +51,12 @@ def redact_pii(text: str) -> tuple[str, dict[str, int]]:
 #--------------------------------------------------------------------------------------------
 def clean_text(text: str) -> str:
     print("*********** clean_text")
+    # Normalize Unicode, remove control characters, fix hyphenated line breaks, 
+    # remove LaTeX commands, inline math, extra whitespace, and excessive newlines.   
+
+    # NFKC normalisation converts look-alike Unicode (ligatures like “ﬁ”, full-width digits) 
+    # to standard characters, so the same word always embeds the same way.
+
     text = unicodedata.normalize("NFKC", text)
     text = "".join(ch for ch in text if ch == "\n" or unicodedata.category(ch)[0] != "C")
     text = _HYPHEN_BREAK.sub(r"\1\2", text)
@@ -64,17 +74,29 @@ def clean_documents(docs: list[RawDocument], redact: bool = True,
     seen_hashes: set[str] = set()
     out: list[RawDocument] = []
     report = {"input": len(docs), "too_short": 0, "duplicates": 0, "pii_redacted": 0}
+    
+    
     for d in docs:
         d.text = clean_text(d.text)
+        # Increment the PII redaction count in the report.
         if redact:
             d.text, counts = redact_pii(d.text)
             report["pii_redacted"] += sum(counts.values())
+        
+        
+        # Skip documents that are too short after cleaning and redaction.
+        # min_chars is the minimum number of characters required for a document to be kept. 
+        # it is 50
         if len(d.text) < min_chars:
             report["too_short"] += 1
             continue
+        
+        
+        # Skip duplicate documents based on content hash.
         if d.content_hash in seen_hashes:
             report["duplicates"] += 1
             continue
+
         seen_hashes.add(d.content_hash)
         out.append(d)
     report["output"] = len(out)

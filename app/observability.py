@@ -13,6 +13,9 @@ expensive?' for any single request, and see p95 latency + cost trends overall."
 """
 from __future__ import annotations
 
+# module provides context‑local storage for managing state in asynchronous or concurrent code, 
+# using ContextVar, Context, and copy_context() to keep values isolated per execution context.
+
 import contextvars
 import json
 import logging
@@ -56,7 +59,10 @@ def log_event(logger: logging.Logger, msg: str, **fields: Any) -> None:
 
 
 # ---------------------------------------------------------------- metrics
+# Counter metrics track the number of occurrences of specific events.
 REQUESTS = Counter("pp_requests_total", "RAG requests", ["route", "status"])
+
+# Histogram metrics track the distribution of observed values, such as latency.
 LATENCY = Histogram(
     "pp_step_latency_seconds", "Latency per pipeline step", ["step"],
     buckets=(0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10),
