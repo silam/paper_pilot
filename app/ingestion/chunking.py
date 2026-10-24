@@ -84,9 +84,14 @@ def _recursive_split(text: str, size: int, separators: tuple[str, ...] = ("\n\n"
 def _with_overlap(pieces: list[str], overlap: int) -> list[str]:
     """Prefix each chunk with the tail of the previous one."""
     print("*********** _with_overlap")
+
+    # If the overlap is non-positive, return the original list of pieces as-is.
     if overlap <= 0:
         return pieces
     out = [pieces[0]] if pieces else []
+    # Iterate over consecutive pairs of chunks and add the overlapping tail to the current chunk.   
+    # The first chunk is already in the output list, so we start from the second one.
+
     for prev, cur in zip(pieces, pieces[1:]):
         tail = prev[-overlap:]
         tail = tail[tail.find(" ") + 1:] if " " in tail else tail  # start on a word
@@ -129,7 +134,12 @@ def chunk_document(doc: RawDocument,
         # Contextual chunk header: prepend the title so an isolated chunk still
         # "knows" which paper it belongs to (cheap trick, big retrieval win).
         text = f"Title: {doc.title}\n{piece}"
+
+        # Generate a unique chunk ID based on the document ID, chunk index, 
+        # and the first 50 characters of the chunk.
         cid = hashlib.md5(f"{doc.doc_id}:{i}:{piece[:50]}".encode()).hexdigest()[:16]
+
+
         chunks.append(Chunk(
             chunk_id=cid, 
             doc_id=doc.doc_id, 
