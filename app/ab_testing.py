@@ -82,5 +82,8 @@ def two_proportion_z_test(success_a: int, n_a: int, success_b: int, n_b: int) ->
     # Determine if the result is statistically significant at the 0.05 level
     # A result is considered significant if the p-value is less than 0.05
     # Return the results including the success rates, z-score, p-value, and significance flag
-    return {"rate_a": round(p_a, 3), "rate_b": round(p_b, 3), "z": round(z, 3),
-            "p_value": round(p_value, 4), "significant_at_0.05": p_value < 0.05}
+    return {"rate_a": round(p_a, 3), 
+            "rate_b": round(p_b, 3), 
+            "z": round(z, 3),
+            "p_value": round(p_value, 4), 
+            "significant_at_0.05": p_value < 0.05}
