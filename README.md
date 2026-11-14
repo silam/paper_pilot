@@ -7,6 +7,11 @@ It's built to show the full AI-engineering lifecycle end-to-end: **data → retr
 evaluation → safety → production ops** — and it **runs in 60 seconds with no API keys** (offline
 mode), then scales up to Docker Compose, Kubernetes and real LLMs by changing environment variables.
 
+
+
+![Streamlit UI](docs/screenshot.png)
+
+
 ```bash
 pip install -r requirements-dev.txt
 python scripts/demo.py          # 13-step narrated walkthrough of every feature
